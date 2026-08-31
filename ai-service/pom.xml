@@ -49,10 +49,10 @@
 		</dependency>
 
 		<!-- Spring AI Vector Store (ChromaDB) -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework.ai</groupId>
-			<artifactId>spring-ai-chroma-store-spring-boot-starter</artifactId>
-		</dependency>
+			<artifactId>spring-ai-starter-vector-store-chroma</artifactId>
+		</dependency> -->
 	</dependencies>
 
 	<build>
