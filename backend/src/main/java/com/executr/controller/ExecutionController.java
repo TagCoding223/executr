@@ -2,6 +2,8 @@ package com.executr.controller;
 
 import com.executr.dto.request.CodeExecutionRequest;
 import com.executr.dto.response.CodeExecutionResponse;
+import com.executr.service.DockerExecutionService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,19 +14,31 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:5173") 
 public class ExecutionController {
 
+    private final DockerExecutionService executionService;
+
+    // Spring Boot automatically injects the service via constructor
+    public ExecutionController(DockerExecutionService executionService) {
+        this.executionService = executionService;
+    }
+
     @PostMapping("/execute")
     public ResponseEntity<CodeExecutionResponse> executeCode(@RequestBody CodeExecutionRequest request) {
         
-        System.out.println("Received request to execute " + request.getLanguage() + " code.");
-        System.out.println("Source Code payload:\n" + request.getSourceCode());
+        String result;
+        String error = null;
 
-        // TODO: In the next step, we will pass this to our Docker service.
-        // For right now, we are just mocking a successful response to ensure the pipeline works.
-        
-        String simulatedOutput = "Simulated output from Spring Boot for language: " + request.getLanguage();
-        String simulatedError = null; // Set to a string to test error handling on the frontend
+        if ("java".equalsIgnoreCase(request.getLanguage())) {
+            result = executionService.executeJavaCode(request.getSourceCode());
+            // Basic logic to separate errors from standard output for the frontend
+            if (result.startsWith("Error:")) {
+                error = result;
+                result = null;
+            }
+        } else {
+            error = "Error: " + request.getLanguage() + " execution is not yet implemented.";
+            result = null;
+        }
 
-        CodeExecutionResponse response = new CodeExecutionResponse(simulatedOutput, simulatedError);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new CodeExecutionResponse(result, error));
     }
 }

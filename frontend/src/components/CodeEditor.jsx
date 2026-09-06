@@ -40,9 +40,14 @@ const CodeEditor = () => {
       const result = await response.json();
       
       if (response.ok) {
-        setOutput(result.output || 'Code executed successfully with no output.');
+        // Check for the error field first!
+        if (result.error) {
+          setOutput(result.error);
+        } else {
+          setOutput(result.output || 'Code executed successfully with no output.');
+        }
       } else {
-        setOutput(`Error: ${result.error || 'Execution failed'}`);
+        setOutput(`Server Error: ${result.error || 'Execution failed'}`);
       }
     } catch (error) {
       setOutput(`Failed to connect to backend: ${error.message}`);
