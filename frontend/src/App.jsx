@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 
 // components import
 import TopLoadingBar from './components/shared/TopLoadingBar';
+import Navbar from './components/shared/Navbar';
 
 // pages
 
@@ -15,23 +16,27 @@ const CodeEditor = lazy(() => import('./components/CodeEditor'));
 function App() {
   return (
     <div className="App">
-      <Suspense fallback={<TopLoadingBar />}>
-        <Routes>
-          <Route
-            path='/'
-            element={
-              <Home />
-            }
-          />
+      <Navbar />
+      <main>
+        <Suspense fallback={<TopLoadingBar />}>
+          <Routes>
+            <Route
+              path='/'
+              element={
+                <Home />
+              }
+            />
 
-          <Route
-            path='/editor'
-            element={
-              <CodeEditor />
-            }
-          />
-        </Routes>
-      </Suspense>
+            <Route
+              path='/editor'
+              element={
+                <CodeEditor />
+              }
+            />
+          </Routes>
+        </Suspense>
+      </main>
+
     </div>
   );
 }
