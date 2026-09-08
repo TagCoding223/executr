@@ -76,6 +76,7 @@ const Home = () => {
         </div>
 
         {/* Powered By Section */}
+        {/* TODO: update this section us your technology used in project */}
         <div className="w-full max-w-3xl bg-white dark:bg-[#12141C] border border-gray-200 dark:border-gray-800 rounded-xl p-8 mb-12 text-center">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-6">Powered By</h3>
           <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-sm font-medium text-gray-700 dark:text-gray-300">
