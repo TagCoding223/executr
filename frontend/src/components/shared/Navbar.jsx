@@ -10,20 +10,12 @@ import {
     LogIn,
     UserPlus
 } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const Navbar = () => {
-    const [isDark, setIsDark] = useState(true);
+    const { isDark, toggleTheme } = useTheme();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false); // Mock auth state
-
-    // Handle dark mode toggling
-    useEffect(() => {
-        if (isDark) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [isDark]);
 
     const navLinks = [
         { name: 'Playground', icon: <Code2 size={18} />, href: '/editor' },
@@ -64,7 +56,7 @@ const Navbar = () => {
                     <div className="hidden md:flex items-center space-x-4">
                         {/* Theme Toggle Button */}
                         <button
-                            onClick={() => setIsDark(!isDark)}
+                            onClick={toggleTheme}
                             className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
                             aria-label="Toggle Theme"
                         >
@@ -96,7 +88,7 @@ const Navbar = () => {
                     {/* Mobile Menu Button */}
                     <div className="md:hidden flex items-center gap-4">
                         <button
-                            onClick={() => setIsDark(!isDark)}
+                            onClick={toggleTheme}
                             className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
                         >
                             {isDark ? <Sun size={20} /> : <Moon size={20} />}
