@@ -12,6 +12,7 @@ import Navbar from './components/shared/Navbar';
 // Dynamically import pages using React.lazy
 const Home = lazy(() => import('./pages/Home'));
 const CodeEditor = lazy(() => import('./components/CodeEditor'));
+const Auth = lazy(() => import('./pages/Auth'));
 
 function App() {
   return (
@@ -31,6 +32,13 @@ function App() {
               path='/editor'
               element={
                 <CodeEditor />
+              }
+            />
+
+            <Route
+              path='/auth'
+              element={
+                <Auth />
               }
             />
           </Routes>

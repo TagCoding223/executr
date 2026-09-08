@@ -11,6 +11,7 @@ import {
     UserPlus
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
     const { isDark, toggleTheme } = useTheme();
@@ -73,14 +74,18 @@ const Navbar = () => {
                             </button>
                         ) : (
                             <div className="flex items-center space-x-2">
-                                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                                    <LogIn size={16} />
-                                    Login
-                                </button>
-                                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm">
-                                    <UserPlus size={16} />
-                                    Sign Up
-                                </button>
+                                <Link to="/auth" >
+                                    <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                                        <LogIn size={16} />
+                                        Login
+                                    </button>
+                                </Link>
+                                <Link to="/auth" >
+                                    <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm">
+                                        <UserPlus size={16} />
+                                        Sign Up
+                                    </button>
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -119,14 +124,18 @@ const Navbar = () => {
                     <div className="pt-4 mt-2 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-2">
                         {!isAuthenticated ? (
                             <>
-                                <button className="flex items-center justify-center gap-2 w-full px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                    <LogIn size={18} />
-                                    Login
-                                </button>
-                                <button className="flex items-center justify-center gap-2 w-full px-4 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-                                    <UserPlus size={18} />
-                                    Sign Up
-                                </button>
+                                <Link to="/auth" >
+                                    <button className="flex items-center justify-center gap-2 w-full px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                        <LogIn size={18} />
+                                        Login
+                                    </button>
+                                </Link>
+                                <Link to="/auth" >
+                                    <button className="flex items-center justify-center gap-2 w-full px-4 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                                        <UserPlus size={18} />
+                                        Sign Up
+                                    </button>
+                                </Link>
                             </>
                         ) : (
                             <button
