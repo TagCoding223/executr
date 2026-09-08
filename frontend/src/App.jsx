@@ -14,6 +14,7 @@ const Home = lazy(() => import('./pages/Home'));
 const CodeEditor = lazy(() => import('./components/CodeEditor'));
 const Auth = lazy(() => import('./pages/Auth'));
 const EditorWorkspace = lazy(() => import('./pages/EditorWorkspace'));
+const Problems = lazy(() => import('./pages/Problems'));
 
 function App() {
   return (
@@ -41,6 +42,13 @@ function App() {
               path='/auth'
               element={
                 <Auth />
+              }
+            />
+
+            <Route
+              path='/problems'
+              element={
+                <Problems />
               }
             />
           </Routes>
