@@ -21,7 +21,7 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Playground', icon: <Code2 size={18} />, href: '/editor' },
         { name: 'Problems', icon: <BookOpenCheck size={18} />, href: '/problems' },
-        { name: 'Profile', icon: <User size={18} />, href: '#' },
+        { name: 'Profile', icon: <User size={18} />, href: '/profile' },
     ];
 
     return (
