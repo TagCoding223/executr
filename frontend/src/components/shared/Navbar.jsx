@@ -90,6 +90,7 @@ const Navbar = () => {
                         )}
                     </div>
 
+{/* TODO: FIX UI BUg when use link to go different page mobile menu not closed */}
                     {/* Mobile Menu Button */}
                     <div className="md:hidden flex items-center gap-4">
                         <button
