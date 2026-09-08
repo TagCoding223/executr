@@ -1,6 +1,8 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
+// components import
+import TopLoadingBar from './components/shared/TopLoadingBar';
 
 // pages
 
@@ -13,21 +15,23 @@ const CodeEditor = lazy(() => import('./components/CodeEditor'));
 function App() {
   return (
     <div className="App">
-      <Routes>
-        <Route 
-          path='/'
-          element={
-            <Home />
-          }
-        />
+      <Suspense fallback={<TopLoadingBar />}>
+        <Routes>
+          <Route
+            path='/'
+            element={
+              <Home />
+            }
+          />
 
-        <Route 
-          path='/editor'
-          element={
-            <CodeEditor />
-          }
-        />
-      </Routes>
+          <Route
+            path='/editor'
+            element={
+              <CodeEditor />
+            }
+          />
+        </Routes>
+      </Suspense>
     </div>
   );
 }
