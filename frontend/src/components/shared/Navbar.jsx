@@ -19,7 +19,7 @@ const Navbar = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false); // Mock auth state
 
     const navLinks = [
-        { name: 'Playground', icon: <Code2 size={18} />, href: '/editor' },
+        { name: 'Playground', icon: <Code2 size={18} />, href: '/playground' },
         { name: 'Problems', icon: <BookOpenCheck size={18} />, href: '/problems' },
         { name: 'Profile', icon: <User size={18} />, href: '/profile' },
     ];
