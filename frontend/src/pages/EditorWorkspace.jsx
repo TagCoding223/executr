@@ -130,16 +130,21 @@ const EditorWorkspace = ({ mode = 'problem', problemName = 'Two Sum' }) => {
       </header>
 
       {/* Main Workspace with v4 Resizable Panels */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* Collapsed Left Panel Stub */}
         {mode === 'problem' && !leftPanelOpen && (
           <div 
-            className="w-10 h-full shrink-0 hidden lg:flex flex-col items-center py-4 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0D14] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#1A1D24]" 
+            className="w-full h-10 lg:w-10 lg:h-full shrink-0 flex flex-row lg:flex-col items-center justify-center lg:justify-start lg:py-4 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0D14] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#1A1D24]" 
             onClick={() => setLeftPanelOpen(true)}
           >
-            <ChevronRight size={16} className="text-gray-500 mb-4" />
-            <span className="writing-vertical text-sm text-gray-500 tracking-widest font-medium" style={{ writingMode: 'vertical-rl' }}>Description</span>
+            {/* Mobile View: Horizontal Chevron and Text */}
+            <ChevronDown size={16} className="block lg:hidden text-gray-500 mr-2" />
+            <span className="block lg:hidden text-sm font-medium text-gray-600 dark:text-gray-300">Show Description</span>
+            
+            {/* Desktop View: Vertical Chevron and Text */}
+            <ChevronRight size={16} className="hidden lg:block text-gray-500 mb-4" />
+            <span className="hidden lg:block writing-vertical text-sm text-gray-500 tracking-widest font-medium" style={{ writingMode: 'vertical-rl' }}>Description</span>
           </div>
         )}
 
