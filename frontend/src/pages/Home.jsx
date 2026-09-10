@@ -128,8 +128,8 @@ const Home = () => {
           <div className="flex gap-6 text-sm font-medium text-gray-600 dark:text-gray-400">
             <a href="#" className="flex items-center gap-2 hover:text-blue-500 transition-colors"><Mail size={16} /> Email</a>
             <a href="#" className="flex items-center gap-2 hover:text-blue-500 transition-colors"><Briefcase size={16} /> Portfolio</a>
-            <a href="#" className="flex items-center gap-2 hover:text-blue-500 transition-colors"><i class="fa-brands fa-github fa-lg"></i> GitHub</a>
-            <a href="#" className="flex items-center gap-2 hover:text-blue-500 transition-colors"><i class="fa-brands fa-linkedin fa-lg"></i> Linkedin</a>
+            <a href="#" className="flex items-center gap-2 hover:text-blue-500 transition-colors"><i className="fa-brands fa-github fa-lg"></i> GitHub</a>
+            <a href="#" className="flex items-center gap-2 hover:text-blue-500 transition-colors"><i className="fa-brands fa-linkedin fa-lg"></i> Linkedin</a>
           </div>
         </div>
       </footer>

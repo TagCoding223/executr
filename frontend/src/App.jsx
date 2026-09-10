@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
+import { PrivateRoute, PublicRoute } from './components/RouteGuards';
 
 // components import
 import TopLoadingBar from './components/shared/TopLoadingBar';
@@ -32,29 +33,25 @@ function App() {
 
     <Suspense fallback={<TopLoadingBar />}>
       <Routes>
-        {/* Routes with the Global Navbar */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/problems" element={<Problems />} />
-          <Route path="/profile" element={<Profile />} />
-
-          {/* Playground Mode (No problem description) */}
-          <Route
-            path="/playground"
-            element={<EditorWorkspace mode="playground" />}
-          />
-
-          {/* Problem Solving Mode (Includes description panel) */}
-          <Route
-            path="/problem/:id"
-            element={<EditorWorkspace mode="problem" />}
-          />
+        {/* Strictly Public Routes (Only accessible when logged OUT) */}
+        <Route element={<PublicRoute />}>
+          <Route path="/auth" element={<Auth />} />
         </Route>
 
-        {/* Full-Screen Routes (No standard Navbar) */}
-        <Route path="/auth" element={<Auth />} />
+        {/* Routes with the Global Navbar */}
+        <Route element={<MainLayout />}>
+          {/* Accessible to anyone */}
+          <Route path="/" element={<Home />} />
+          <Route path="/problems" element={<Problems />} />
+          
+          {/* Accessible ONLY when logged IN */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/profile" element={<Profile />} />
+          </Route>
 
-
+          <Route path="/playground" element={<EditorWorkspace mode="playground" />} />
+          <Route path="/problem/:id" element={<EditorWorkspace mode="problem" />} />
+        </Route>
       </Routes>
     </Suspense>
   );

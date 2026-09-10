@@ -12,11 +12,20 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; 
 
 const Navbar = () => {
+  // Check auth state directly from localStorage
+  const isAuthenticated = !!localStorage.getItem('token');
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/auth');
+  };
+
     const { isDark, toggleTheme } = useTheme();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // Mock auth state
 
     const navLinks = [
         { name: 'Playground', icon: <Code2 size={18} />, href: '/playground' },
@@ -67,7 +76,7 @@ const Navbar = () => {
                         {/* Auth Buttons */}
                         {isAuthenticated ? (
                             <button
-                                onClick={() => setIsAuthenticated(false)}
+                                onClick={handleLogout}
                                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             >
                                 Logout
@@ -140,7 +149,7 @@ const Navbar = () => {
                             </>
                         ) : (
                             <button
-                                onClick={() => setIsAuthenticated(false)}
+                                onClick={handleLogout}
                                 className="flex items-center justify-center gap-2 w-full px-4 py-2 text-base font-medium text-red-600 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             >
                                 Logout
