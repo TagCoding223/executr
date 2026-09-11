@@ -2,9 +2,10 @@ package com.executr.entity;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.CascadeType;
@@ -32,6 +33,9 @@ public class User implements UserDetails{
     @Column(unique = true, nullable = false)
     private String email;
 
+    // Added for Spring Security compatibility (even if using OAuth primarily)
+    private String password;
+
     private String location;
     
     private String avatarUrl;
@@ -43,15 +47,45 @@ public class User implements UserDetails{
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserStats stats;
 
+    // ========================================================================
+    // Spring Security UserDetails Methods
+    // ========================================================================
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAuthorities'");
+        // By default, assign a standard USER role to everyone
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
-    public @Nullable String getPassword() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPassword'");
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        // Since we lookup users by email in ApplicationConfig, we return email here.
+        // This ensures the JWT subject maps perfectly to the UserDetailsService.
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // Set to false if you want to implement account expiration
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // Set to false if you want to implement ban/lock logic
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // Set to false for email verification flows
     }
 }
