@@ -1,15 +1,44 @@
-import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+
+
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Mock JWT storage - backend will provide this later
-    localStorage.setItem('token', 'mock_jwt_token_123');
-    // Force a hard reload to update the Navbar state across the app
-    window.location.href = '/';
+  const handleGoogleLogin = async (credentialResponse) => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(BACKEND_BASE_URL + 'api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to authenticate with the server.');
+      }
+
+      const data = await response.json();
+
+      localStorage.setItem('token', data.token);
+
+      window.location.href = '/';
+
+    } catch (err) {
+      setError(err.message || 'An error occurred during sign in.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -69,10 +98,49 @@ const Auth = () => {
               Sign in or create an account to access your progress.
             </p>
 
-            {/* Google OAuth Button */}
-            <button
+
+
+
+            {/* Error Banner */}
+            {error && (
+              <div className="mb-4 flex items-start gap-2 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-900/50">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Loading State or Google Button */}
+            <div className="flex justify-center w-full">
+              {isLoading ? (
+                <div className="flex items-center gap-2 text-gray-500 py-2">
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Authenticating...</span>
+                </div>
+              ) : (
+                <GoogleLogin
+                  onSuccess={handleGoogleLogin}
+                  onError={() => setError('Google sign-in popup failed or was closed.')}
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                />
+              )}
+            </div>
+
+            <div className="mt-8 text-sm text-gray-500 dark:text-gray-400">
+              By continuing, you agree to Executr's <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</a>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      {/* login custom design */}
+      {/* Google OAuth Button */}
+      {/* <button
               className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-[#1A1D24] border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-[#0B0D14] transition-all shadow-sm"
-              onClick={handleLogin}
+              onClick={handleGoogleLogin}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25C22.56 11.47 22.49 10.71 22.36 9.97H12V14.28H17.92C17.67 15.68 16.89 16.88 15.71 17.67V20.44H19.28C21.36 18.52 22.56 15.65 22.56 12.25Z" fill="#4285F4" />
@@ -81,16 +149,15 @@ const Auth = () => {
                 <path d="M12 5.64C13.62 5.64 15.06 6.19 16.2 7.28L19.35 4.13C17.45 2.37 14.97 1.36 12 1.36C7.69 1.36 4.01 3.71 2.21 7.28L5.88 10.13C6.74 7.55 9.15 5.64 12 5.64Z" fill="#EA4335" />
               </svg>
               Continue with Google
-            </button>
-
-            <div className="mt-8 text-sm text-gray-500 dark:text-gray-400">
-              By continuing, you agree to Executr's <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</a>.
-            </div>
-          </div>
-        </div>
-      </div>
+            </button> */}
     </div>
+
+
   );
 };
 
 export default Auth;
+
+/*
+
+*/
