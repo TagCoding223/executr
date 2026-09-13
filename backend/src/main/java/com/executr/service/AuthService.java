@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,9 @@ public class AuthService {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
+
+    @Value("${app.security.admin-email:your-email@gmail.com}") 
+    private String adminEmail;
 
     public String authenticateWithGoogle(String googleToken) throws Exception {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
@@ -36,16 +41,26 @@ public class AuthService {
         GoogleIdToken.Payload payload = idToken.getPayload();
         String email = payload.getEmail();
 
-        // Find existing user or create a new one
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(email);
-            // Default username logic (frontend modal will update this later)
             newUser.setUsername(email.split("@")[0]); 
             newUser.setAvatarUrl((String) payload.get("picture"));
+            
+            // Assign ADMIN role if the email matches the whitelist
+            if (email.equalsIgnoreCase(adminEmail)) {
+                newUser.setRole(User.Role.ADMIN);
+            } else {
+                newUser.setRole(User.Role.USER);
+            }
+            
             return userRepository.save(newUser);
         });
 
-        return jwtService.generateToken(user);
+        // Add the role to the JWT claims so the React frontend knows the user's role
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        
+        return jwtService.generateToken(claims, user);
     }
 }
