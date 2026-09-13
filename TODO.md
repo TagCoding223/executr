@@ -1,0 +1,2 @@
+1. add a navigation button on profile page for admin user to navigate admin page
+2. google like or instagram like username is exist or not? before allow to create a new username for a account.
