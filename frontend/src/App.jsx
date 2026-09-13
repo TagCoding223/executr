@@ -1,8 +1,8 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
-import { PrivateRoute, PublicRoute } from './components/RouteGuards';
 
 // components import
+import { PrivateRoute, PublicRoute, AdminRoute } from './components/RouteGuards';
 import TopLoadingBar from './components/shared/TopLoadingBar';
 import Navbar from './components/shared/Navbar';
 
@@ -17,6 +17,7 @@ const Auth = lazy(() => import('./pages/Auth'));
 const EditorWorkspace = lazy(() => import('./pages/EditorWorkspace'));
 const Problems = lazy(() => import('./pages/Problems'));
 const Profile = lazy(() => import('./pages/Profile'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 // Layout component for pages that require the standard Navbar
 const MainLayout = () => {
@@ -51,6 +52,13 @@ function App() {
 
           <Route path="/playground" element={<EditorWorkspace mode="playground" />} />
           <Route path="/problem/:id" element={<EditorWorkspace mode="problem" />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<MainLayout />}>
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Route>
         </Route>
       </Routes>
     </Suspense>
