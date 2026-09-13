@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-import com.executr.dto.ProposalRequestDto;
+import com.executr.dto.request.ProposalRequestDto;
 import com.executr.entity.ProblemProposal;
 import com.executr.entity.ProposalTestCase;
 

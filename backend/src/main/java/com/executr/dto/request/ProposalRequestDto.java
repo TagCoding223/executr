@@ -1,4 +1,4 @@
-package com.executr.dto;
+package com.executr.dto.request;
 
 import com.executr.entity.Problem.Difficulty;
 import lombok.Data;
