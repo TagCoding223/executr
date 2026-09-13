@@ -39,6 +39,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Public login/signup
                 .requestMatchers("/api/problems/public/**").permitAll() // Public problem directory
+                // Lock down all admin endpoints
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // All other endpoints require a valid JWT
                 .anyRequest().authenticated()
             )
