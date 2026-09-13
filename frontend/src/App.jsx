@@ -18,6 +18,7 @@ const EditorWorkspace = lazy(() => import('./pages/EditorWorkspace'));
 const Problems = lazy(() => import('./pages/Problems'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const ProposeProblem = lazy(() => import('./pages/ProposeProblem'));
 
 // Layout component for pages that require the standard Navbar
 const MainLayout = () => {
@@ -44,6 +45,7 @@ function App() {
           {/* Accessible to anyone */}
           <Route path="/" element={<Home />} />
           <Route path="/problems" element={<Problems />} />
+          <Route path="/problems/propose" element={<ProposeProblem />} />
           
           {/* Accessible ONLY when logged IN */}
           <Route element={<PrivateRoute />}>
