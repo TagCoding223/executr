@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import MDEditor from '@uiw/react-md-editor';
 import { Plus, Trash2, Edit2, Eye, AlertCircle, CheckCircle2, Loader2, Lock } from 'lucide-react';
 
 const ProposeProblem = () => {
@@ -9,7 +9,7 @@ const ProposeProblem = () => {
     tags: '',
     descriptionMarkdown: '',
   });
-  
+
   const [testCases, setTestCases] = useState([
     { inputData: '', expectedOutput: '', isSample: true }
   ]);
@@ -18,7 +18,7 @@ const ProposeProblem = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
+
   // Rate Limiting State
   const [isLocked, setIsLocked] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
@@ -64,7 +64,7 @@ const ProposeProblem = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLocked) return;
-    
+
     setIsSubmitting(true);
     setError('');
 
@@ -101,7 +101,7 @@ const ProposeProblem = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0B0D14] text-gray-900 dark:text-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Contribute a Problem</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2">Submit your algorithm challenge to be featured on Executr.</p>
@@ -125,7 +125,7 @@ const ProposeProblem = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          
+
           {/* Section 1: Basic Info */}
           <div className="bg-white dark:bg-[#12141C] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
             <div>
@@ -135,19 +135,19 @@ const ProposeProblem = () => {
                 disabled={isLocked || isSubmitting}
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-[#0B0D14] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-50"
                 placeholder="e.g., Two Sum"
               />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1.5">Difficulty *</label>
                 <select
                   disabled={isLocked || isSubmitting}
                   value={formData.difficulty}
-                  onChange={(e) => setFormData({...formData, difficulty: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-50 dark:bg-[#0B0D14] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-50"
                 >
                   <option value="EASY">Easy</option>
@@ -161,7 +161,7 @@ const ProposeProblem = () => {
                   disabled={isLocked || isSubmitting}
                   type="text"
                   value={formData.tags}
-                  onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-50 dark:bg-[#0B0D14] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-50"
                   placeholder="Arrays, Hash Table, Math"
                 />
@@ -170,35 +170,33 @@ const ProposeProblem = () => {
           </div>
 
           {/* Section 2: Markdown Editor */}
-          <div className="bg-white dark:bg-[#12141C] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+          {/* <div className="bg-white dark:bg-[#12141C] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
             <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0D14] px-4 pt-2 gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTab('write')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'write' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'write' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
               >
                 <Edit2 size={16} /> Write
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'preview' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'preview' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
               >
                 <Eye size={16} /> Preview
               </button>
             </div>
-            
+
             <div className="p-4">
               {activeTab === 'write' ? (
                 <textarea
                   required
                   disabled={isLocked || isSubmitting}
                   value={formData.descriptionMarkdown}
-                  onChange={(e) => setFormData({...formData, descriptionMarkdown: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, descriptionMarkdown: e.target.value })}
                   rows="10"
                   className="w-full p-4 bg-gray-50 dark:bg-[#1A1D24] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm resize-y disabled:opacity-50"
                   placeholder="Describe the problem, input format, and constraints using Markdown..."
@@ -206,12 +204,46 @@ const ProposeProblem = () => {
               ) : (
                 <div className="prose dark:prose-invert max-w-none min-h-62.5 p-4 bg-gray-50 dark:bg-[#1A1D24] rounded-lg border border-gray-300 dark:border-gray-700">
                   {formData.descriptionMarkdown ? (
-                    <ReactMarkdown>{formData.descriptionMarkdown}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {formData.descriptionMarkdown}
+                    </ReactMarkdown>
                   ) : (
                     <span className="text-gray-500 italic">Nothing to preview.</span>
                   )}
                 </div>
               )}
+            </div>
+          </div> */}
+
+          {/* Section 2: Markdown Editor */}
+          <div className="bg-white dark:bg-[#12141C] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
+            <label className="block text-sm font-medium">Problem Description & Constraints *</label>
+            
+            {/* 
+              We use two wrappers with Tailwind's hidden/block classes 
+              to ensure the editor perfectly respects your Dark/Light mode toggle.
+            */}
+            
+            {/* Light Mode Editor */}
+            <div data-color-mode="light" className="dark:hidden">
+              <MDEditor
+                value={formData.descriptionMarkdown}
+                onChange={(val) => setFormData({ ...formData, descriptionMarkdown: val || '' })}
+                height={400}
+                preview="live" // Options: "edit", "live" (split-screen), "preview"
+                className="border-gray-300!"
+              />
+            </div>
+            
+            {/* Dark Mode Editor */}
+            <div data-color-mode="dark" className="hidden dark:block">
+              <MDEditor
+                value={formData.descriptionMarkdown}
+                onChange={(val) => setFormData({ ...formData, descriptionMarkdown: val || '' })}
+                height={400}
+                preview="live"
+                style={{ backgroundColor: '#1A1D24' }} 
+              />
             </div>
           </div>
 
@@ -244,7 +276,7 @@ const ProposeProblem = () => {
                     </button>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium mb-1">Input Data</label>
@@ -269,7 +301,7 @@ const ProposeProblem = () => {
                     />
                   </div>
                 </div>
-                
+
                 <label className="flex items-center gap-2 mt-2">
                   <input
                     type="checkbox"
@@ -290,7 +322,7 @@ const ProposeProblem = () => {
               disabled={isLocked || isSubmitting}
               className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? <><Loader2 size={18} className="animate-spin"/> Submitting...</> : 'Submit Proposal'}
+              {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Submitting...</> : 'Submit Proposal'}
             </button>
           </div>
         </form>
