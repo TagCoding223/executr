@@ -1,24 +1,52 @@
+import Editor from '@monaco-editor/react';
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Plus, Trash2, AlertCircle, CheckCircle2, Loader2, Lock } from 'lucide-react';
+import {
+  Plus, AlertCircle, CheckCircle2, Loader2, Lock, Play, Timer, ChevronDown, ChevronRight, ChevronLeft,
+  ChevronUp, Trash2, LayoutTemplate
+} from 'lucide-react';
 
 const ProposeProblem = () => {
   const [formData, setFormData] = useState({
     title: '',
     difficulty: 'EASY',
-    tags: '',
+    constraints: '',
     descriptionMarkdown: '',
+    solutionLanguage: 'java',
+    solutionCode: '',
+    testCases: [{ input: '', expectedOutput: '' }]
   });
 
+  // Instant Theme Detection
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
+
+  // Track temporary local files mapped to blob URLs
+  const [imageFilesMap, setImageFilesMap] = useState(new Map());
 
   const [testCases, setTestCases] = useState([
     { inputData: '', expectedOutput: '', isSample: true }
   ]);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Validation Execution State
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState(null); // { success: boolean, message: string }
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Rate Limiting State
   const [isLocked, setIsLocked] = useState(false);
@@ -99,72 +127,120 @@ const ProposeProblem = () => {
     }
   };
 
+  // Local Image Interceptor (No server requests yet)
+  const handleLocalImageInsert = (file) => {
+    const blobUrl = URL.createObjectURL(file);
+
+    setImageFilesMap(prev => new Map(prev).set(blobUrl, file));
+
+    const markdownImage = `\n![Diagram](${blobUrl})\n`;
+    setFormData(prev => ({
+      ...prev,
+      descriptionMarkdown: prev.descriptionMarkdown + markdownImage
+    }));
+  };
+
   // Handles Ctrl+V / Cmd+V
-  const handlePaste = async (event) => {
+  const handlePaste = (event) => {
     const items = event.clipboardData?.items;
     if (!items) return;
-
     for (const item of items) {
-      // Check if the pasted item is an image
-      if (item.type.indexOf('image') === 0) {
-        event.preventDefault(); // Stop the default Base64 string from pasting
+      if (item.type.startsWith('image/')) {
+        event.preventDefault();
         const file = item.getAsFile();
-        if (file) await uploadImage(file);
+        if (file) handleLocalImageInsert(file);
       }
     }
   };
 
   // Handles drag-and-drop
-  const handleDrop = async (event) => {
+  const handleDrop = (event) => {
     const files = event.dataTransfer?.files;
     if (!files) return;
-
     for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type.indexOf('image') === 0) {
-        event.preventDefault(); // Stop the browser from opening the image in a new tab
-        await uploadImage(file);
+      if (files[i].type.startsWith('image/')) {
+        event.preventDefault();
+        handleLocalImageInsert(files[i]);
       }
     }
   };
 
-  // The actual upload logic
-  const uploadImage = async (file) => {
+  // 1. Send code + test cases to execution engine
+  const handleRunValidation = async () => {
+    setIsValidating(true);
+    setValidationResult(null);
+
     try {
-      // Temporarily append a loading message so the user knows it's working
-      const placeholder = `\n![Uploading image...]()\n`;
-      setFormData(prev => ({
-        ...prev,
-        descriptionMarkdown: prev.descriptionMarkdown + placeholder
-      }));
-
-      const payload = new FormData();
-      payload.append('image', file);
-
-      // POST to your Spring Boot AWS S3 endpoint (we will build this next)
-      const response = await fetch(BACKEND_BASE_URL + 'api/problems/public/upload-image', {
+      const response = await fetch(BACKEND_BASE_URL + 'api/problems/public/validate-solution', {
         method: 'POST',
-        body: payload
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: formData.solutionLanguage,
+          code: formData.solutionCode,
+          testCases: formData.testCases
+        })
       });
-
-      if (!response.ok) throw new Error('Upload failed');
 
       const data = await response.json();
 
-      // Replace the placeholder with the real AWS S3 URL
-      setFormData(prev => ({
-        ...prev,
-        descriptionMarkdown: prev.descriptionMarkdown.replace(placeholder, `\n![Problem Diagram](${data.imageUrl})\n`)
-      }));
-    } catch (error) {
-      console.error("Image upload failed:", error);
-      // Remove placeholder on failure
-      setFormData(prev => ({
-        ...prev,
-        descriptionMarkdown: prev.descriptionMarkdown.replace(`\n![Uploading image...]()\n`, '')
-      }));
-      alert("Failed to upload image.");
+      if (data.allPassed) {
+        setValidationResult({ success: true, message: 'All test cases passed! Proposal unlocked.' });
+      } else {
+        setValidationResult({ success: false, message: `Failed at test case ${data.failedIndex + 1}: ${data.errorMessage}` });
+      }
+    } catch (err) {
+      setValidationResult({ success: false, message: 'Execution server error. Try again.' });
+    } finally {
+      setIsValidating(false);
     }
+  };
+
+  // 2. Extract valid images, upload to Cloudinary, submit proposal
+  const handleFinalSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      let updatedMarkdown = formData.descriptionMarkdown;
+
+      // Extract only blob URLs remaining in active markdown text
+      for (const [blobUrl, file] of imageFilesMap.entries()) {
+        if (updatedMarkdown.includes(blobUrl)) {
+          // Upload active image to Cloudinary
+          const cloudinaryUrl = await uploadToCloudinary(file);
+          // Swap blob URL with Cloudinary CDN URL
+          updatedMarkdown = updatedMarkdown.replaceAll(blobUrl, cloudinaryUrl);
+        }
+        // Free browser memory for deleted or processed blobs
+        URL.revokeObjectURL(blobUrl);
+      }
+
+      // Final POST to Spring Boot backend
+      const payload = { ...formData, descriptionMarkdown: updatedMarkdown };
+      await fetch(BACKEND_BASE_URL + 'api/problems/propose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      alert('Proposal submitted successfully!');
+    } catch (err) {
+      alert('Failed to submit proposal.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Cloudinary direct upload helper
+  const uploadToCloudinary = async (file) => {
+    const data = new FormData();
+    data.append('file', file);
+    data.append('upload_preset', 'YOUR_CLOUDINARY_PRESET'); // Replace with your preset
+
+    const res = await fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
+      method: 'POST',
+      body: data
+    });
+    const json = await res.json();
+    return json.secure_url;
   };
 
   return (
@@ -349,13 +425,89 @@ const ProposeProblem = () => {
             ))}
           </div>
 
-          <div className="flex justify-end">
+          {/* Section 4: Constraints Input */}
+          <div className="bg-white dark:bg-[#12141C] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-2">
+            <label className="block text-sm font-medium">Constraints *</label>
+
+            <textarea
+              rows={3}
+              value={formData.constraints}
+              onChange={(e) => setFormData({ ...formData, constraints: e.target.value })}
+              placeholder={`1 <= N <= 10^5\n1 <= A[i] <= 10^9`}
+              className="w-full p-3 bg-gray-50 dark:bg-[#1A1D24] border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Section 5: Reference Solution Editor */}
+          <div className="bg-white dark:bg-[#12141C] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold">Reference Solution (With Main Method)</h3>
+                <p className="text-xs text-gray-500">Provide a complete solution capable of parsing input and validating output.</p>
+              </div>
+
+              {/* Language Selector */}
+              <select
+                value={formData.solutionLanguage}
+                onChange={(e) => {
+                  setFormData({ ...formData, solutionLanguage: e.target.value });
+                  setValidationResult(null); // Reset gate on change
+                }}
+                className="p-2 bg-gray-50 dark:bg-[#1A1D24] border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-medium"
+              >
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+              </select>
+            </div>
+
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+              <Editor
+                height="320px"
+                language={formData.solutionLanguage === 'cpp' ? 'cpp' : formData.solutionLanguage}
+                value={formData.solutionCode}
+                onChange={(val) => {
+                  setFormData({ ...formData, solutionCode: val || '' });
+                  setValidationResult(null); // Reset validation gate on edit
+                }}
+                theme={isDark ? 'vs-dark' : 'light'}
+                options={{ minimap: { enabled: false }, fontSize: 14 }}
+              />
+            </div>
+
+            {/* Test & Validation Gate Button */}
+            <div className="flex items-center justify-between pt-2">
+              <button
+                type="button"
+                onClick={handleRunValidation}
+                disabled={isValidating || !formData.solutionCode.trim()}
+                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                Validate Solution Against Test Cases
+              </button>
+
+              {/* Status Indicator */}
+              {validationResult && (
+                <div className={`flex items-center gap-2 text-sm font-medium ${validationResult.success ? 'text-green-500' : 'text-red-500'}`}>
+                  {validationResult.success ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                  <span>{validationResult.message}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Final Submit Proposal Button */}
+          <div className="flex justify-end pt-4">
             <button
-              type="submit"
-              disabled={isLocked || isSubmitting}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={handleFinalSubmit}
+              disabled={!validationResult?.success || isSubmitting}
+              className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-base font-semibold shadow-lg transition-all"
             >
-              {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Submitting...</> : 'Submit Proposal'}
+              {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
+              Submit Proposal
             </button>
           </div>
         </form>
