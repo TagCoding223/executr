@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Plus, Trash2, Edit2, Eye, AlertCircle, CheckCircle2, Loader2, Lock } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, CheckCircle2, Loader2, Lock } from 'lucide-react';
 
 const ProposeProblem = () => {
   const [formData, setFormData] = useState({
@@ -10,11 +10,12 @@ const ProposeProblem = () => {
     descriptionMarkdown: '',
   });
 
+  const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
+
   const [testCases, setTestCases] = useState([
     { inputData: '', expectedOutput: '', isSample: true }
   ]);
 
-  const [activeTab, setActiveTab] = useState('write');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -69,7 +70,7 @@ const ProposeProblem = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8080/api/problems/public/propose', {
+      const response = await fetch(BACKEND_BASE_URL + 'api/problems/public/propose', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,6 +96,74 @@ const ProposeProblem = () => {
       setError(err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handles Ctrl+V / Cmd+V
+  const handlePaste = async (event) => {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      // Check if the pasted item is an image
+      if (item.type.indexOf('image') === 0) {
+        event.preventDefault(); // Stop the default Base64 string from pasting
+        const file = item.getAsFile();
+        if (file) await uploadImage(file);
+      }
+    }
+  };
+
+  // Handles drag-and-drop
+  const handleDrop = async (event) => {
+    const files = event.dataTransfer?.files;
+    if (!files) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.indexOf('image') === 0) {
+        event.preventDefault(); // Stop the browser from opening the image in a new tab
+        await uploadImage(file);
+      }
+    }
+  };
+
+  // The actual upload logic
+  const uploadImage = async (file) => {
+    try {
+      // Temporarily append a loading message so the user knows it's working
+      const placeholder = `\n![Uploading image...]()\n`;
+      setFormData(prev => ({
+        ...prev,
+        descriptionMarkdown: prev.descriptionMarkdown + placeholder
+      }));
+
+      const payload = new FormData();
+      payload.append('image', file);
+
+      // POST to your Spring Boot AWS S3 endpoint (we will build this next)
+      const response = await fetch(BACKEND_BASE_URL + 'api/problems/public/upload-image', {
+        method: 'POST',
+        body: payload
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const data = await response.json();
+
+      // Replace the placeholder with the real AWS S3 URL
+      setFormData(prev => ({
+        ...prev,
+        descriptionMarkdown: prev.descriptionMarkdown.replace(placeholder, `\n![Problem Diagram](${data.imageUrl})\n`)
+      }));
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      // Remove placeholder on failure
+      setFormData(prev => ({
+        ...prev,
+        descriptionMarkdown: prev.descriptionMarkdown.replace(`\n![Uploading image...]()\n`, '')
+      }));
+      alert("Failed to upload image.");
     }
   };
 
@@ -170,71 +239,30 @@ const ProposeProblem = () => {
           </div>
 
           {/* Section 2: Markdown Editor */}
-          {/* <div className="bg-white dark:bg-[#12141C] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-            <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0D14] px-4 pt-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab('write')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'write' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
-              >
-                <Edit2 size={16} /> Write
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'preview' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
-              >
-                <Eye size={16} /> Preview
-              </button>
-            </div>
-
-            <div className="p-4">
-              {activeTab === 'write' ? (
-                <textarea
-                  required
-                  disabled={isLocked || isSubmitting}
-                  value={formData.descriptionMarkdown}
-                  onChange={(e) => setFormData({ ...formData, descriptionMarkdown: e.target.value })}
-                  rows="10"
-                  className="w-full p-4 bg-gray-50 dark:bg-[#1A1D24] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm resize-y disabled:opacity-50"
-                  placeholder="Describe the problem, input format, and constraints using Markdown..."
-                />
-              ) : (
-                <div className="prose dark:prose-invert max-w-none min-h-62.5 p-4 bg-gray-50 dark:bg-[#1A1D24] rounded-lg border border-gray-300 dark:border-gray-700">
-                  {formData.descriptionMarkdown ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {formData.descriptionMarkdown}
-                    </ReactMarkdown>
-                  ) : (
-                    <span className="text-gray-500 italic">Nothing to preview.</span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div> */}
-
-          {/* Section 2: Markdown Editor */}
           <div className="bg-white dark:bg-[#12141C] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
             <label className="block text-sm font-medium">Problem Description & Constraints *</label>
-            
+
             {/* 
               We use two wrappers with Tailwind's hidden/block classes 
               to ensure the editor perfectly respects your Dark/Light mode toggle.
             */}
-            
+
             {/* Light Mode Editor */}
             <div data-color-mode="light" className="dark:hidden">
               <MDEditor
                 value={formData.descriptionMarkdown}
                 onChange={(val) => setFormData({ ...formData, descriptionMarkdown: val || '' })}
                 height={400}
-                preview="live" // Options: "edit", "live" (split-screen), "preview"
+                preview="live"
                 className="border-gray-300!"
+                textareaProps={{
+                  onPaste: handlePaste,
+                  onDrop: handleDrop,
+                  onDragOver: (e) => e.preventDefault()
+                }}
               />
             </div>
-            
+
             {/* Dark Mode Editor */}
             <div data-color-mode="dark" className="hidden dark:block">
               <MDEditor
@@ -242,7 +270,12 @@ const ProposeProblem = () => {
                 onChange={(val) => setFormData({ ...formData, descriptionMarkdown: val || '' })}
                 height={400}
                 preview="live"
-                style={{ backgroundColor: '#1A1D24' }} 
+                style={{ backgroundColor: '#1A1D24' }}
+                textareaProps={{
+                  onPaste: handlePaste,
+                  onDrop: handleDrop,
+                  onDragOver: (e) => e.preventDefault()
+                }}
               />
             </div>
           </div>

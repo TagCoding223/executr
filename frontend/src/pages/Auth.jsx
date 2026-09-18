@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 
 
-const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
 
 const Auth = () => {
+  const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
