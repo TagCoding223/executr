@@ -8,7 +8,8 @@ import {
     BookOpenCheck,
     User,
     LogIn,
-    UserPlus
+    UserPlus,
+    HandFist
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { Link } from 'react-router-dom';
@@ -31,6 +32,7 @@ const Navbar = () => {
         { name: 'Playground', icon: <Code2 size={18} />, href: '/playground' },
         { name: 'Problems', icon: <BookOpenCheck size={18} />, href: '/problems' },
         { name: 'Profile', icon: <User size={18} />, href: '/profile' },
+        { name: 'Propose Problem', icon: <HandFist size={18} />, href: '/problems/propose' },
     ];
 
     return (
