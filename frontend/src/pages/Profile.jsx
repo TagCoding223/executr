@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import ProfileModal from '../components/ProfileModal';
 import {
     User,
@@ -9,8 +9,11 @@ import {
     CheckCircle2,
     Clock,
     Activity,
-    Edit
+    Edit,
+    LaptopMinimalCheck
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {getJwtPayload} from '../components/RouteGuards';
 
 // Mock User Data
 const USER_DATA = {
@@ -40,6 +43,16 @@ const RECENT_SUBMISSIONS = [
 
 const Profile = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(()=>{
+        const payload = getJwtPayload();
+        if(payload.role !== 'ADMIN'){
+            setIsAdmin(false)
+        }else{
+            setIsAdmin(true)
+        }
+    },[])
 
     const handleProfileUpdate = async (updatedData) => {
         // Simulate a network delay
@@ -106,11 +119,20 @@ const Profile = () => {
 
                         {/* Edit Profile Button */}
                         <div className="mt-5 sm:mt-0 pb-2">
-                            <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#1A1D24] border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm font-medium shadow-sm w-full sm:w-auto justify-center">
+                            <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 my-1.5 px-4 py-2 bg-gray-100 dark:bg-[#1A1D24] border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm font-medium shadow-sm w-full sm:w-auto justify-center">
                                 <Edit size={16} />
                                 Edit Profile
                             </button>
+
+                            {isAdmin && 
+                            <Link to="/admin">
+                                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#1A1D24] border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm font-medium shadow-sm w-full sm:w-auto justify-center">
+                                    <LaptopMinimalCheck size={16} />
+                                    Accept Problems
+                                </button>
+                            </Link>}
                         </div>
+
                     </div>
                 </div>
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 // Utility to decode JWT payload safely
-const getJwtPayload = () => {
+export const getJwtPayload = () => {
   const token = localStorage.getItem('token');
   if (!token) return null;
   try {
