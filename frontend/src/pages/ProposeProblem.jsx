@@ -13,8 +13,7 @@ const ProposeProblem = () => {
     constraints: '',
     descriptionMarkdown: '',
     solutionLanguage: 'java',
-    solutionCode: '',
-    testCases: [{ input: '', expectedOutput: '' }]
+    solutionCode: ''
   });
 
   // Instant Theme Detection
@@ -90,6 +89,7 @@ const ProposeProblem = () => {
     setTestCases(updated);
   };
 
+  // submit proposal
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLocked) return;
@@ -170,6 +170,16 @@ const ProposeProblem = () => {
     setIsValidating(true);
     setValidationResult(null);
 
+    // Map testCases state to the DTO structure expected by backend (input & expectedOutput)
+    const formattedTestCases = testCases.map(tc => ({
+      input: tc.inputData,
+      expectedOutput: tc.expectedOutput
+    }));
+
+    // console.log("Language:", formData.solutionLanguage);
+    // console.log("Code:", formData.solutionCode);
+    // console.log("Formatted Test Cases:", formattedTestCases);
+
     try {
       const response = await fetch(BACKEND_BASE_URL + 'api/problems/public/validate-solution', {
         method: 'POST',
@@ -177,7 +187,7 @@ const ProposeProblem = () => {
         body: JSON.stringify({
           language: formData.solutionLanguage,
           code: formData.solutionCode,
-          testCases: formData.testCases
+          testCases: formattedTestCases // Use formattedTestCases here
         })
       });
 
@@ -186,7 +196,10 @@ const ProposeProblem = () => {
       if (data.allPassed) {
         setValidationResult({ success: true, message: 'All test cases passed! Proposal unlocked.' });
       } else {
-        setValidationResult({ success: false, message: `Failed at test case ${data.failedIndex + 1}: ${data.errorMessage}` });
+        setValidationResult({ 
+          success: false, 
+          message: `Failed at test case ${data.failedIndex + 1}: ${data.errorMessage}` 
+        });
       }
     } catch (err) {
       setValidationResult({ success: false, message: 'Execution server error. Try again.' });
