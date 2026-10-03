@@ -89,44 +89,6 @@ const ProposeProblem = () => {
     setTestCases(updated);
   };
 
-  // submit proposal
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (isLocked) return;
-
-    setIsSubmitting(true);
-    setError('');
-
-    try {
-      const response = await fetch(BACKEND_BASE_URL + 'api/problems/public/propose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          testCases
-        }),
-      });
-
-      if (response.status === 429) {
-        throw new Error('Rate limit exceeded: You can only submit 3 proposals per 24 hours.');
-      }
-      if (!response.ok) {
-        throw new Error('Failed to submit proposal. Please try again.');
-      }
-
-      // Lock client for 24h to prevent spamming
-      localStorage.setItem('executr_last_proposal', new Date().toISOString());
-      setShowSuccessModal(true);
-      setIsLocked(true);
-      setTimeRemaining('24 hours');
-
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // Local Image Interceptor (No server requests yet)
   const handleLocalImageInsert = (file) => {
     const blobUrl = URL.createObjectURL(file);
@@ -165,7 +127,7 @@ const ProposeProblem = () => {
     }
   };
 
-  // 1. Send code + test cases to execution engine
+  // Send code + test cases to execution engine
   const handleRunValidation = async () => {
     setIsValidating(true);
     setValidationResult(null);
@@ -208,40 +170,6 @@ const ProposeProblem = () => {
     }
   };
 
-  // 2. Extract valid images, upload to Cloudinary, submit proposal
-  const handleFinalSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      let updatedMarkdown = formData.descriptionMarkdown;
-
-      // Extract only blob URLs remaining in active markdown text
-      for (const [blobUrl, file] of imageFilesMap.entries()) {
-        if (updatedMarkdown.includes(blobUrl)) {
-          // Upload active image to Cloudinary
-          const cloudinaryUrl = await uploadToCloudinary(file);
-          // Swap blob URL with Cloudinary CDN URL
-          updatedMarkdown = updatedMarkdown.replaceAll(blobUrl, cloudinaryUrl);
-        }
-        // Free browser memory for deleted or processed blobs
-        URL.revokeObjectURL(blobUrl);
-      }
-
-      // Final POST to Spring Boot backend
-      const payload = { ...formData, descriptionMarkdown: updatedMarkdown };
-      await fetch(BACKEND_BASE_URL + 'api/problems/propose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      alert('Proposal submitted successfully!');
-    } catch (err) {
-      alert('Failed to submit proposal.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // Cloudinary direct upload helper
   const uploadToCloudinary = async (file) => {
     const data = new FormData();
@@ -254,6 +182,66 @@ const ProposeProblem = () => {
     });
     const json = await res.json();
     return json.secure_url;
+  };
+
+  // Unified submit proposal handler
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isLocked) return;
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      let updatedMarkdown = formData.descriptionMarkdown;
+
+      // 1. Extract valid images and upload to Cloudinary
+      for (const [blobUrl, file] of imageFilesMap.entries()) {
+        if (updatedMarkdown.includes(blobUrl)) {
+          const cloudinaryUrl = await uploadToCloudinary(file);
+          updatedMarkdown = updatedMarkdown.replaceAll(blobUrl, cloudinaryUrl);
+        }
+        URL.revokeObjectURL(blobUrl);
+      }
+
+      // 2. Map testCases state to the DTO structure (inputData -> input)
+      const formattedTestCases = testCases.map(tc => ({
+        input: tc.inputData,
+        expectedOutput: tc.expectedOutput,
+        isSample: tc.isSample
+      }));
+
+      // 3. Final POST to Spring Boot backend
+      const payload = { 
+        ...formData, 
+        descriptionMarkdown: updatedMarkdown,
+        testCases: formattedTestCases
+      };
+
+      const response = await fetch(BACKEND_BASE_URL + 'api/problems/public/propose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded: You can only submit 3 proposals per 24 hours.');
+      }
+      if (!response.ok) {
+        throw new Error('Failed to submit proposal. Please try again.');
+      }
+
+      // 4. Handle Success State
+      localStorage.setItem('executr_last_proposal', new Date().toISOString());
+      setShowSuccessModal(true);
+      setIsLocked(true);
+      setTimeRemaining('24 hours');
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -514,8 +502,7 @@ const ProposeProblem = () => {
           {/* Final Submit Proposal Button */}
           <div className="flex justify-end pt-4">
             <button
-              type="button"
-              onClick={handleFinalSubmit}
+              type="submit"
               disabled={!validationResult?.success || isSubmitting}
               className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-base font-semibold shadow-lg transition-all"
             >
