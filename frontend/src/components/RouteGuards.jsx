@@ -14,23 +14,35 @@ export const getJwtPayload = () => {
   }
 };
 
+// Utility to check if token exists and is not expired
+export const isTokenValid = () => {
+  const payload = getJwtPayload();
+  if (!payload) return false;
+
+  // 'exp' is in seconds, Date.now() is in milliseconds
+  if (payload.exp && (payload.exp * 1000 < Date.now())) {
+    localStorage.removeItem('token'); // Purge expired token
+    return false;
+  }
+  
+  return true;
+};
+
 export const PrivateRoute = () => {
-  const token = localStorage.getItem('token');
-  return token ? <Outlet /> : <Navigate to="/auth" replace />;
+  return isTokenValid() ? <Outlet /> : <Navigate to="/auth" replace />;
 };
 
 export const PublicRoute = () => {
-  const token = localStorage.getItem('token');
-  return token ? <Navigate to="/" replace /> : <Outlet />;
+  return isTokenValid() ? <Navigate to="/" replace /> : <Outlet />;
 };
 
-// New Admin Guard
+// Admin Guard
 export const AdminRoute = () => {
-  const payload = getJwtPayload();
-  
-  if (!payload) {
+  if (!isTokenValid()) {
     return <Navigate to="/auth" replace />;
   }
+  
+  const payload = getJwtPayload();
   
   if (payload.role !== 'ADMIN') {
     // If a normal user tries to access /admin, kick them to home
