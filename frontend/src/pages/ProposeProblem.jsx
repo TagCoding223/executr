@@ -206,7 +206,7 @@ const ProposeProblem = () => {
 
       // 2. Map testCases state to the DTO structure (inputData -> input)
       const formattedTestCases = testCases.map(tc => ({
-        input: tc.inputData,
+        inputData: tc.inputData,
         expectedOutput: tc.expectedOutput,
         isSample: tc.isSample
       }));
