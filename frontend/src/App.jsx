@@ -19,6 +19,7 @@ const Problems = lazy(() => import('./pages/Problems'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const ProposeProblem = lazy(() => import('./pages/ProposeProblem'));
+const AdminProposalReview = lazy(() => import('./pages/AdminProposalReview'));
 
 // Layout component for pages that require the standard Navbar
 const MainLayout = () => {
@@ -60,6 +61,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/proposal/:id" element={<AdminProposalReview />} />
           </Route>
         </Route>
       </Routes>
