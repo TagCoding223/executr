@@ -28,14 +28,13 @@ public class ProblemProposal {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String descriptionMarkdown;
 
-    // Added Fields
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String constraints;
 
-    @Column
+    @Column(nullable = false)
     private String solutionLanguage;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String solutionCode;
 
     @Enumerated(EnumType.STRING)

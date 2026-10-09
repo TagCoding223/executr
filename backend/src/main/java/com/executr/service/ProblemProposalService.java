@@ -29,6 +29,9 @@ public class ProblemProposalService {
         proposal.setDifficulty(requestDto.getDifficulty());
         proposal.setDescriptionMarkdown(requestDto.getDescriptionMarkdown());
         proposal.setSubmitterIp(clientIp);
+        proposal.setConstraints(requestDto.getConstraints());
+        proposal.setSolutionLanguage(requestDto.getSolutionLanguage());
+        proposal.setSolutionCode(requestDto.getSolutionCode());
 
         List<ProposalTestCase> testCases = requestDto.getTestCases().stream().map(tcDto -> {
             ProposalTestCase tc = new ProposalTestCase();
