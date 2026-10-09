@@ -9,6 +9,12 @@ public class ProposalRequestDto {
     private String title;
     private Difficulty difficulty;
     private String descriptionMarkdown;
+    
+    // Added Fields
+    private String constraints;
+    private String solutionLanguage;
+    private String solutionCode;
+    
     private List<TestCaseDto> testCases;
 
     @Data
@@ -18,4 +24,3 @@ public class ProposalRequestDto {
         private boolean isSample;
     }
 }
-

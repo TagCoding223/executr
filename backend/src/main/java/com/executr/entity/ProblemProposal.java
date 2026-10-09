@@ -28,6 +28,16 @@ public class ProblemProposal {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String descriptionMarkdown;
 
+    // Added Fields
+    @Column(columnDefinition = "TEXT")
+    private String constraints;
+
+    @Column
+    private String solutionLanguage;
+
+    @Column(columnDefinition = "TEXT")
+    private String solutionCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProposalStatus status = ProposalStatus.PENDING;

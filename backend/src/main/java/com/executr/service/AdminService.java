@@ -79,4 +79,9 @@ public class AdminService {
         proposal.setAdminFeedback(feedback);
         proposalRepository.save(proposal);
     }
+
+    public ProblemProposal getProposalById(Long proposalId) {
+        return proposalRepository.findById(proposalId)
+                .orElseThrow(() -> new RuntimeException("Proposal not found with id: " + proposalId));
+    }
 }
