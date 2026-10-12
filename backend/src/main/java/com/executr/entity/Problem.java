@@ -1,21 +1,16 @@
 package com.executr.entity;
 
-import java.time.LocalDateTime;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
 @Table(name = "problems")
 public class Problem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,7 +19,7 @@ public class Problem {
     private String title;
 
     @Column(nullable = false, unique = true)
-    private String slug; // e.g., "two-sum" for the URL
+    private String slug;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -33,11 +28,27 @@ public class Problem {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    // Cache total attempts and successes to calculate acceptance rate easily
-    private long totalAttempts = 0;
-    private long successfulAttempts = 0;
+    // Added fields to match proposals upon approval
+    @Column(columnDefinition = "TEXT")
+    private String constraints;
 
+    @Column
+    private String solutionLanguage;
+
+    @Column(columnDefinition = "TEXT")
+    private String solutionCode;
+
+    @Column(nullable = false)
+    private Long totalAttempts = 0L;
+
+    @Column(nullable = false)
+    private Long successfulAttempts = 0L;
+
+    @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestCase> testCases = new ArrayList<>();
 
     public enum Difficulty {
         EASY, MEDIUM, HARD
