@@ -46,12 +46,15 @@ public class AdminService {
             throw new IllegalStateException("Proposal is not in a pending state.");
         }
 
-        // 1. Create the Live Problem
+        // 1. Create and populate the Live Problem with complete details
         Problem liveProblem = new Problem();
         liveProblem.setTitle(proposal.getTitle());
         liveProblem.setSlug(proposal.getSlug());
-        liveProblem.setDifficulty(proposal.getDifficulty());
+        liveProblem.setDifficulty(Problem.Difficulty.valueOf(proposal.getDifficulty().name()));
         liveProblem.setDescription(proposal.getDescriptionMarkdown());
+        liveProblem.setConstraints(proposal.getConstraints());
+        liveProblem.setSolutionLanguage(proposal.getSolutionLanguage());
+        liveProblem.setSolutionCode(proposal.getSolutionCode());
         problemRepository.save(liveProblem);
 
         // 2. Migrate Test Cases
