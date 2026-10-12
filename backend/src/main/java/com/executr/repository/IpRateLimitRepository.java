@@ -8,4 +8,5 @@ import java.time.LocalDateTime;
 @Repository
 public interface IpRateLimitRepository extends JpaRepository<IpRateLimit, Long> {
     long countByClientIpAndCreatedAtAfter(String clientIp, LocalDateTime timestamp);
+    int deleteByCreatedAtBefore(LocalDateTime cutoff);
 }
