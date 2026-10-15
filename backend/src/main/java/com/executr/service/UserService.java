@@ -1,5 +1,6 @@
 package com.executr.service;
 
+import com.executr.dto.request.UserProfileUpdateDto;
 import com.executr.dto.response.UserProfileResponse;
 import com.executr.entity.Problem;
 import com.executr.entity.User;
@@ -95,5 +96,32 @@ public class UserService {
 
         response.setRecentSubmissions(subDtos);
         return response;
+    }
+
+    @Transactional
+    public UserProfileResponse updateProfile(String emailOrUsername, UserProfileUpdateDto updateDto) {
+        User user = userRepository.findByEmail(emailOrUsername)
+                .or(() -> userRepository.findByUsername(emailOrUsername))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if username is changing and if it is already taken by another user
+        if (updateDto.getUsername() != null && !updateDto.getUsername().trim().isEmpty()) {
+            String newUsername = updateDto.getUsername().trim();
+            if (!newUsername.equalsIgnoreCase(user.getUsername())) {
+                if (userRepository.findByUsername(newUsername).isPresent()) {
+                    throw new RuntimeException("This username is already taken. Please choose another.");
+                }
+                user.setUsername(newUsername);
+            }
+        }
+
+        if (updateDto.getLocation() != null) {
+            user.setLocation(updateDto.getLocation().trim());
+        }
+
+        userRepository.save(user);
+
+        // Return the fresh, fully populated profile response
+        return getUserProfile(user.getEmail());
     }
 }
