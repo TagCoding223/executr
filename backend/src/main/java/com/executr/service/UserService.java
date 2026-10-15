@@ -9,6 +9,8 @@ import com.executr.repository.ProblemRepository;
 import com.executr.repository.SubmissionRepository;
 import com.executr.repository.UserRepository;
 import com.executr.repository.UserStatsRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
