@@ -38,6 +38,7 @@ public class SecurityConfig {
             // Define URL routing authorizations
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Public login/signup
+                .requestMatchers("/api/user/**").authenticated()
                 .requestMatchers("/api/problems/public/**").permitAll() // Public problem directory
                 // Lock down all admin endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

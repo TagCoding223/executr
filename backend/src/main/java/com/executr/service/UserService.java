@@ -29,17 +29,21 @@ public class UserService {
                 .or(() -> userRepository.findByUsername(emailOrUsername))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Fetch or initialize user stats
+        // Fetch or initialize user stats safely using cascade on the User entity
         UserStats stats = userStatsRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
                     UserStats defaultStats = new UserStats();
-                    defaultStats.setUserId(user.getId());
+                    defaultStats.setUser(user);
                     defaultStats.setEasySolved(0);
                     defaultStats.setMediumSolved(0);
                     defaultStats.setHardSolved(0);
                     defaultStats.setTotalSolved(0);
                     defaultStats.setGlobalRank(9999);
-                    return userStatsRepository.save(defaultStats);
+                    
+                    // Attach to parent and save via userRepository to let CascadeType.ALL handle @MapsId
+                    user.setStats(defaultStats);
+                    userRepository.save(user); 
+                    return defaultStats;
                 });
 
         // Get total available problems per difficulty for progress bar percentages
