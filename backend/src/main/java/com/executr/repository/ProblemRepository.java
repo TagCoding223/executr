@@ -13,4 +13,6 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     
     // Automatically handles paginated lists for the Problems directory
     Page<Problem> findAll(Pageable pageable);
+    
+    long countByDifficulty(Problem.Difficulty difficulty);
 }

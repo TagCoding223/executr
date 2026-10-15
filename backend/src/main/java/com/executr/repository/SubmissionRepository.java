@@ -25,4 +25,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
      */
     @Query("SELECT s FROM Submission s JOIN FETCH s.problem WHERE s.user.id = :userId ORDER BY s.submittedAt DESC")
     List<Submission> findRecentSubmissionsByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    List<Submission> findTop10ByUserIdOrderBySubmittedAtDesc(Long userId);
 }
