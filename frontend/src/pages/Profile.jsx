@@ -54,8 +54,31 @@ const Profile = () => {
     }, []);
 
     const handleProfileUpdate = async (updatedData) => {
-        // Implement backend update call if available, or refresh local state
-        setIsModalOpen(false);
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`${BACKEND_BASE_URL}api/user/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: updatedData.username,
+                    location: updatedData.address // Mapping modal's address field to backend location
+                })
+            });
+
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(errorMessage || "Failed to update profile.");
+            }
+
+            const updatedProfile = await response.json();
+            setUserData(updatedProfile); // Dynamically update UI state with fresh backend data
+            setIsModalOpen(false);
+        } catch (err) {
+            throw new Error(err.message || "An error occurred while updating profile.");
+        }
     };
 
     const getDifficultyColor = (difficulty) => {
