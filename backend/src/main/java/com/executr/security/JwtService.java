@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +25,7 @@ public class JwtService {
     private String secretKey;
 
     @Value("${app.jwt.expiration-ms}")
-    private String jwtExpiration;
+    private long jwtExpiration;
 
     public String extractUsername(String token) {
         return extractClaim(token, claims -> claims.getSubject());
@@ -46,7 +45,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new SimpleDateFormat("dd/MM/yyyy").parse(System.currentTimeMillis() + jwtExpiration))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
