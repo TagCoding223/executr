@@ -16,6 +16,11 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
 
     // Added for searching problems by title dynamically
     Page<Problem> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+
+    // Added filter query methods
+    Page<Problem> findByDifficulty(Problem.Difficulty difficulty, Pageable pageable);
+    
+    Page<Problem> findByTitleContainingIgnoreCaseAndDifficulty(String title, Problem.Difficulty difficulty, Pageable pageable);
     
     long countByDifficulty(Problem.Difficulty difficulty);
 }
