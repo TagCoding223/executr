@@ -22,19 +22,21 @@ const Problems = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('ALL');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Debounce search input to avoid excessive API requests on every keystroke
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setCurrentPage(1); // Reset to page 1 on new search query
+      setCurrentPage(1);
     }, 300);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch paginated & searched problems from backend
+  // Fetch paginated, searched, and filtered problems from backend
   useEffect(() => {
     const fetchProblems = async () => {
       setIsLoading(true);
@@ -43,6 +45,9 @@ const Problems = () => {
         let url = `${BACKEND_BASE_URL}api/problems?page=${currentPage}&size=${ITEMS_PER_PAGE}`;
         if (debouncedSearch.trim()) {
           url += `&search=${encodeURIComponent(debouncedSearch.trim())}`;
+        }
+        if (selectedDifficulty !== 'ALL') {
+          url += `&difficulty=${encodeURIComponent(selectedDifficulty)}`;
         }
 
         const response = await fetch(url, {
@@ -65,7 +70,7 @@ const Problems = () => {
     };
 
     fetchProblems();
-  }, [currentPage, debouncedSearch]);
+  }, [currentPage, debouncedSearch, selectedDifficulty]);
 
   const getDifficultyColor = (difficulty) => {
     const diff = difficulty?.toUpperCase();
@@ -94,7 +99,7 @@ const Problems = () => {
         </div>
 
         {/* Toolbar (Search & Filter) */}
-        <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6 relative">
           <div className="relative w-full sm:w-96">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search size={18} className="text-gray-400" />
@@ -108,10 +113,34 @@ const Problems = () => {
             />
           </div>
           
-          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-[#12141C] border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-[#1A1D24] transition-colors text-sm font-medium shadow-sm w-full sm:w-auto">
-            <Filter size={16} />
-            Filters
-          </button>
+          {/* Filter Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-[#12141C] border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-[#1A1D24] transition-colors text-sm font-medium shadow-sm w-full sm:w-auto"
+            >
+              <Filter size={16} />
+              {selectedDifficulty === 'ALL' ? 'Difficulty: All' : `Difficulty: ${selectedDifficulty.charAt(0) + selectedDifficulty.slice(1).toLowerCase()}`}
+            </button>
+
+            {isFilterOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#12141C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-20 py-1">
+                {['ALL', 'EASY', 'MEDIUM', 'HARD'].map((diff) => (
+                  <button
+                    key={diff}
+                    onClick={() => {
+                      setSelectedDifficulty(diff);
+                      setIsFilterOpen(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#1A1D24] transition-colors ${selectedDifficulty === diff ? 'font-semibold text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}
+                  >
+                    {diff === 'ALL' ? 'All Difficulties' : diff.charAt(0) + diff.slice(1).toLowerCase()}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Problems Table Container */}
@@ -135,7 +164,7 @@ const Problems = () => {
               <tbody className="text-sm">
                 {problems.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-8 text-gray-500">No problems found matching your search.</td>
+                    <td colSpan="4" className="text-center py-8 text-gray-500">No problems found matching your criteria.</td>
                   </tr>
                 ) : (
                   problems.map((problem) => (
