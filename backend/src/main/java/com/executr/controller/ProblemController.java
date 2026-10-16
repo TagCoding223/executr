@@ -23,9 +23,10 @@ public class ProblemController {
     public ResponseEntity<Page<Problem>> getProblems(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String difficulty) {
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
-        Page<Problem> problemsPage = problemService.getPaginatedProblems(search, pageable);
+        Page<Problem> problemsPage = problemService.getPaginatedProblems(search, difficulty, pageable);
         return ResponseEntity.ok(problemsPage);
     }
 }
