@@ -13,10 +13,27 @@ public class ProblemService {
 
     private final ProblemRepository problemRepository;
 
-    public Page<Problem> getPaginatedProblems(String search, Pageable pageable) {
-        if (search != null && !search.trim().isEmpty()) {
-            return problemRepository.findByTitleContainingIgnoreCase(search.trim(), pageable);
+    public Page<Problem> getPaginatedProblems(String search, String difficulty, Pageable pageable) {
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasDifficulty = difficulty != null && !difficulty.trim().isEmpty() && !difficulty.equalsIgnoreCase("ALL");
+
+        Problem.Difficulty diffEnum = null;
+        if (hasDifficulty && difficulty!=null) {
+            try {
+                diffEnum = Problem.Difficulty.valueOf(difficulty.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                hasDifficulty = false;
+            }
         }
-        return problemRepository.findAll(pageable);
+
+        if (hasSearch && hasDifficulty && search!=null) {
+            return problemRepository.findByTitleContainingIgnoreCaseAndDifficulty(search.trim(), diffEnum, pageable);
+        } else if (hasSearch && search!=null) {
+            return problemRepository.findByTitleContainingIgnoreCase(search.trim(), pageable);
+        } else if (hasDifficulty) {
+            return problemRepository.findByDifficulty(diffEnum, pageable);
+        } else {
+            return problemRepository.findAll(pageable);
+        }
     }
 }
