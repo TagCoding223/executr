@@ -5,9 +5,7 @@ import {
   Filter, 
   ChevronLeft, 
   ChevronRight, 
-  CheckCircle2, 
   Circle,
-  Building2,
   Loader2
 } from 'lucide-react';
 
@@ -23,16 +21,31 @@ const Problems = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch paginated problems from backend
+  // Debounce search input to avoid excessive API requests on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to page 1 on new search query
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch paginated & searched problems from backend
   useEffect(() => {
     const fetchProblems = async () => {
       setIsLoading(true);
       const token = localStorage.getItem('token');
       try {
-        // Spring Boot pages are 0-indexed, so we pass currentPage - 1
-        const response = await fetch(`${BACKEND_BASE_URL}api/problems?page=${currentPage}&size=${ITEMS_PER_PAGE}`, {
+        let url = `${BACKEND_BASE_URL}api/problems?page=${currentPage}&size=${ITEMS_PER_PAGE}`;
+        if (debouncedSearch.trim()) {
+          url += `&search=${encodeURIComponent(debouncedSearch.trim())}`;
+        }
+
+        const response = await fetch(url, {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
 
@@ -52,9 +65,8 @@ const Problems = () => {
     };
 
     fetchProblems();
-  }, [currentPage]);
+  }, [currentPage, debouncedSearch]);
 
-  // Helper for difficulty colors
   const getDifficultyColor = (difficulty) => {
     const diff = difficulty?.toUpperCase();
     switch (diff) {
@@ -68,11 +80,6 @@ const Problems = () => {
   const handleRowClick = (id) => {
     navigate(`/problem/${id}`);
   };
-
-  // Filter local view based on search query
-  const filteredProblems = problems.filter(p => 
-    p.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 
@@ -94,7 +101,7 @@ const Problems = () => {
             </div>
             <input 
               type="text" 
-              placeholder="Search problems..." 
+              placeholder="Search problems by title..." 
               className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#12141C] border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-shadow shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -109,11 +116,11 @@ const Problems = () => {
 
         {/* Problems Table Container */}
         <div className="bg-white dark:bg-[#12141C] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden mb-6 relative min-h-75">
-          {isLoading ? (
+          {isLoading && (
             <div className="absolute inset-0 flex justify-center items-center bg-white/50 dark:bg-[#12141C]/50 backdrop-blur-xs z-10">
               <Loader2 className="animate-spin text-blue-600" size={36} />
             </div>
-          ) : null}
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -126,12 +133,12 @@ const Problems = () => {
                 </tr>
               </thead>
               <tbody className="text-sm">
-                {filteredProblems.length === 0 && !isLoading ? (
+                {problems.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-8 text-gray-500">No problems found.</td>
+                    <td colSpan="4" className="text-center py-8 text-gray-500">No problems found matching your search.</td>
                   </tr>
                 ) : (
-                  filteredProblems.map((problem) => (
+                  problems.map((problem) => (
                     <tr 
                       key={problem.id}
                       onClick={() => handleRowClick(problem.id)}
