@@ -13,7 +13,10 @@ public class ProblemService {
 
     private final ProblemRepository problemRepository;
 
-    public Page<Problem> getPaginatedProblems(Pageable pageable) {
-        return problemRepository.findAll(pageable); // Uses the repository method[cite: 33]
+    public Page<Problem> getPaginatedProblems(String search, Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return problemRepository.findByTitleContainingIgnoreCase(search.trim(), pageable);
+        }
+        return problemRepository.findAll(pageable);
     }
 }
