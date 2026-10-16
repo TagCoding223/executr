@@ -13,6 +13,9 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     
     // Automatically handles paginated lists for the Problems directory
     Page<Problem> findAll(Pageable pageable);
+
+    // Added for searching problems by title dynamically
+    Page<Problem> findByTitleContainingIgnoreCase(String title, Pageable pageable);
     
     long countByDifficulty(Problem.Difficulty difficulty);
 }
