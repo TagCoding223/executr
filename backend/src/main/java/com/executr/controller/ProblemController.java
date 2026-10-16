@@ -22,10 +22,10 @@ public class ProblemController {
     @GetMapping
     public ResponseEntity<Page<Problem>> getProblems(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        // Convert 1-indexed frontend page to 0-indexed Spring pageable
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
-        Page<Problem> problemsPage = problemService.getPaginatedProblems(pageable);
+        Page<Problem> problemsPage = problemService.getPaginatedProblems(search, pageable);
         return ResponseEntity.ok(problemsPage);
     }
 }
